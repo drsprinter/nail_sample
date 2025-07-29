@@ -1,27 +1,43 @@
+
 from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 from openai import OpenAI
 import os
+import json
 
 app = Flask(__name__)
 CORS(app, origins=["https://nsforb.web.fc2.com", "http://localhost:5500"])
 
-# OpenAI クライアント初期化（APIキーは Render の環境変数に登録）
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-@app.route('/api/makeup', methods=['POST', 'OPTIONS'])
-def makeup():
+@app.route('/api/nail', methods=['POST', 'OPTIONS'])
+def nail():
     if request.method == 'OPTIONS':
-        return '', 204  # CORS プリフライト応答
+        return '', 204
 
     data = request.get_json()
-    prompt = data.get('prompt', '')
-
     try:
+        # 質問項目を文字列に整形
+        info = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                info.append(f"{key}: {', '.join(value)}")
+            else:
+                info.append(f"{key}: {value}")
+        prompt = "\n".join(info)
+
+        system_content = (
+            "あなたはプロのネイリストです。"
+            "以下のお客様情報をもとに、ネイルプランを生成してください。"
+            "出力は次の2つのセクションに分けてください：\n"
+            "[お客様向けネイルコンセプト]：感性に響く丁寧な説明、使用カラーやイメージなど。\n"
+            "[サロン向け技術メモ]：プリジェル顔料を使ったカラー調合比率、使用カラー名、塗布順、ポイントなど。"
+        )
+
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "あなたはプロのメイクアップアーティストです。"},
+                {"role": "system", "content": system_content},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7
@@ -32,7 +48,7 @@ def makeup():
         with open('latest_plan.txt', 'w', encoding='utf-8') as f:
             f.write(plan)
 
-        return jsonify({'status': 'メイクプランの生成が完了しました。', 'plan': plan})
+        return jsonify({'status': 'ネイルプランの生成が完了しました。', 'plan': plan})
 
     except Exception as e:
         return jsonify({'status': 'エラーが発生しました', 'error': str(e)}), 500
@@ -40,7 +56,7 @@ def makeup():
 
 @app.route('/')
 def index():
-    return result()  # トップページは最新のメイクプランを表示
+    return redirect("/result")
 
 
 @app.route('/result')
@@ -48,20 +64,19 @@ def result():
     try:
         with open('latest_plan.txt', 'r', encoding='utf-8') as f:
             content = f.read()
-        return f'''
+        return f"""
         <!DOCTYPE html>
-        <html lang="ja">
+        <html lang='ja'>
         <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>あなたへのメイクプラン</title>
-            <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New&family=Zen+Antique+Soft&display=swap" rel="stylesheet">
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>ネイルカウンセリング結果</title>
+            <link href='https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New&family=Zen+Antique+Soft&display=swap' rel='stylesheet'>
             <style>
                 body {{
                     font-family: 'Zen Kaku Gothic New', sans-serif;
-                    background: #fdf8f5;
-                    color: #4a3c38;
-                    margin: 0;
+                    background: #fff9f6;
+                    color: #3c2f2f;
                     padding: 1em;
                     line-height: 1.7;
                 }}
@@ -76,88 +91,28 @@ def result():
                 h1 {{
                     font-family: 'Zen Antique Soft', serif;
                     font-size: 1.8em;
-                    color: #a8666e;
+                    color: #d08874;
                     text-align: center;
-                    margin-bottom: 1em;
                 }}
                 pre {{
                     white-space: pre-wrap;
-                    word-break: break-word;
-                    background: #fff8f6;
+                    background: #fef6f2;
                     padding: 1em;
                     border-left: 5px solid #f4cacc;
                     border-radius: 8px;
-                    font-size: 1em;
-                }}
-                .image-container {{
-                    text-align: center;
-                    margin-top: 2em;
-                }}
-                .image-container img {{
-                    width: 100%;
-                    max-width: 400px;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                }}
-                .caption {{
-                    font-size: 0.9em;
-                    color: #666;
-                    margin-top: 0.5em;
-                    text-align: center;
-                }}
-                @media (max-width: 600px) {{
-                    .container {{
-                        padding: 1.2em;
-                    }}
                 }}
             </style>
         </head>
         <body>
-            <div class="container">
-                <h1>あなたへのメイクプラン</h1>
+            <div class='container'>
+                <h1>あなたへのネイルプラン</h1>
                 <pre>{content}</pre>
-                <div class="image-container">
-                    <img src="https://dummyimage.com/400x600/ffe8ed/000000&text=Makeup+Visual" alt="メイクイメージ画像">
-                    <div class="caption">※この画像はメイクプランの参考イメージです</div>
-                </div>
             </div>
         </body>
         </html>
-        '''
+        """
     except FileNotFoundError:
-        return '''
-        <!DOCTYPE html>
-        <html lang="ja">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>メイクプラン未生成</title>
-            <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New&display=swap" rel="stylesheet">
-            <style>
-                body {{
-                    font-family: 'Zen Kaku Gothic New', sans-serif;
-                    background: #fdf8f5;
-                    color: #555;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    text-align: center;
-                    padding: 2em;
-                }}
-                h1 {{
-                    color: #a8666e;
-                }}
-            </style>
-        </head>
-        <body>
-            <div>
-                <h1>メイクプランはまだ生成されていません。</h1>
-                <p>フォームから送信後に結果が表示されます。</p>
-            </div>
-        </body>
-        </html>
-        '''
+        return "<h2>ネイルプランはまだ生成されていません。</h2>"
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))

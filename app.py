@@ -10,7 +10,7 @@ CORS(app, origins=["https://nsforb.web.fc2.com", "http://localhost:5500"])
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-@app.route('/api/nail', methods=['POST', 'OPTIONS'])
+@app.route('/api/makeup', methods=['POST', 'OPTIONS'])
 def nail():
     if request.method == 'OPTIONS':
         return '', 204

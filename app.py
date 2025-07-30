@@ -47,19 +47,28 @@ def makeup():
             temperature=0.7
         )
 
-        plan = response.choices[0].message.content
+        plan = response.choices[0].message.content.strip()
 
-        # DALL·Eで画像生成プロンプトを生成（planから要約）
-	image_prompt_response = client.chat.completions.create(
-    		model="gpt-4",
-    		messages=[
-        		{"role": "system", "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。シンプルで上品なネイルのイメージに絞り、手のアップ写真として成立する内容にしてください。"},
-        		{"role": "user", "content": plan}
-    		],
-    		temperature=0.5
-	)
-	image_prompt = image_prompt_response.choices[0].message.content.strip()
+        # プランからDALL·E用プロンプトを自動生成（英語）
+        image_prompt_response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。"
+                               "シンプルで上品なネイルのイメージに絞り、手のアップ写真として成立する内容にしてください。"
+                },
+                {
+                    "role": "user",
+                    "content": plan
+                }
+            ],
+            temperature=0.5
+        )
+        image_prompt = image_prompt_response.choices[0].message.content.strip()
+        print("🎨 image prompt:", image_prompt)
 
+        # DALL·E で画像生成
         image_response = client.images.generate(
             model="dall-e-3",
             prompt=image_prompt,
@@ -69,6 +78,7 @@ def makeup():
         )
 
         image_url = image_response.data[0].url
+        print("🖼️ image_url:", image_url)
 
         # ログ・保存
         with open('latest_plan.txt', 'w', encoding='utf-8') as f:
@@ -143,6 +153,7 @@ def result():
         """
     except FileNotFoundError:
         return "<h2>ネイルプランはまだ生成されていません。</h2>"
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))

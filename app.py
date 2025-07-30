@@ -6,7 +6,9 @@ import os
 import json
 
 app = Flask(__name__)
-CORS(app, origins=["https://nsforb.web.fc2.com", "http://localhost:5500"])
+CORS(app, origins=["https://drsprinter.github.io",
+    "https://drsprinter.github.io/nail_sample",
+    "http://localhost:5500"])
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 

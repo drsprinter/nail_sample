@@ -50,11 +50,16 @@ def makeup():
         plan = response.choices[0].message.content
 
         # DALL·Eで画像生成プロンプトを生成（planから要約）
-        image_prompt = (
-            "A close-up photo of a woman's hand with a simple, elegant gel nail design. "
-            "Neutral beige or pink tones, glossy finish, rounded nails. Soft light. "
-            "Japanese salon style."
-        )
+	image_prompt_response = client.chat.completions.create(
+    		model="gpt-4",
+    		messages=[
+        		{"role": "system", "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。\
+シンプルで上品なネイルのイメージに絞り、手のアップ写真として成立する内容にしてください。"},
+        		{"role": "user", "content": plan}
+    		],
+    		temperature=0.5
+	)
+	image_prompt = image_prompt_response.choices[0].message.content.strip()
 
         image_response = client.images.generate(
             model="dall-e-3",

@@ -53,8 +53,7 @@ def makeup():
 	image_prompt_response = client.chat.completions.create(
     		model="gpt-4",
     		messages=[
-        		{"role": "system", "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。\
-シンプルで上品なネイルのイメージに絞り、手のアップ写真として成立する内容にしてください。"},
+        		{"role": "system", "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。シンプルで上品なネイルのイメージに絞り、手のアップ写真として成立する内容にしてください。"},
         		{"role": "user", "content": plan}
     		],
     		temperature=0.5

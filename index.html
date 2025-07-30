@@ -76,6 +76,32 @@
     button[type="submit"]:hover {
       background-color: #bc7868;
     }
+    .result {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #fffaf8;
+      border-radius: 12px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    .result pre {
+      white-space: pre-wrap;
+      background: #fff4f0;
+      padding: 1em;
+      border-left: 4px solid #f0c5bd;
+      border-radius: 8px;
+    }
+    .result img {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+    .caption {
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -136,6 +162,13 @@
 
       <button type="submit">送信する</button>
     </form>
+
+    <div class="result" id="result" style="display:none;">
+      <h2>あなたのネイルプラン</h2>
+      <pre id="planText"></pre>
+      <img id="nailImage" src="" alt="ネイルサンプル画像" style="display:none;" />
+      <div class="caption" id="imgCaption" style="display:none;">※AIによるネイルイメージ</div>
+    </div>
   </div>
 
   <script>
@@ -167,10 +200,19 @@
           body: JSON.stringify(data)
         });
 
+        const result = await response.json();
+
         if (response.ok) {
-          window.location.href = "https://makeup-enz8.onrender.com/result";
+          document.getElementById("planText").textContent = result.plan || "(プランが取得できませんでした)";
+          if (result.image_url) {
+            document.getElementById("nailImage").src = result.image_url;
+            document.getElementById("nailImage").style.display = "block";
+            document.getElementById("imgCaption").style.display = "block";
+          }
+          document.getElementById("result").style.display = "block";
+          form.style.display = "none";
         } else {
-          alert("エラーが発生しました。もう一度お試しください。");
+          alert("エラーが発生しました: " + (result.error || "不明なエラー"));
         }
       } catch (error) {
         console.error("送信エラー:", error);

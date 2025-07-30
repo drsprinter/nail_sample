@@ -1,14 +1,14 @@
-
 from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 from openai import OpenAI
 import os
-import json
 
 app = Flask(__name__)
-CORS(app, origins=["https://drsprinter.github.io",
+CORS(app, origins=[
+    "https://drsprinter.github.io",
     "https://drsprinter.github.io/nail_sample",
-    "http://localhost:5500"])
+    "http://localhost:5500"
+])
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -19,7 +19,7 @@ def makeup():
 
     data = request.get_json()
     try:
-        # 質問項目を文字列に整形
+        # カウンセリング内容を文字列に整形
         info = []
         for key, value in data.items():
             if isinstance(value, list):
@@ -28,6 +28,7 @@ def makeup():
                 info.append(f"{key}: {value}")
         prompt = "\n".join(info)
 
+        # GPTに送るシステムメッセージ
         system_content = (
             "あなたはプロのネイリストです。"
             "以下のお客様情報をもとに、ネイルプランを生成してください。"
@@ -36,6 +37,7 @@ def makeup():
             "[サロン向け技術メモ]：プリジェル顔料を使ったカラー調合比率、使用カラー名、塗布順、ポイントなど。"
         )
 
+        # GPTでネイルプラン生成
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -47,10 +49,32 @@ def makeup():
 
         plan = response.choices[0].message.content
 
+        # DALL·Eで画像生成プロンプトを生成（planから要約）
+        image_prompt = (
+            "A close-up photo of a woman's hand with a simple, elegant gel nail design. "
+            "Neutral beige or pink tones, glossy finish, rounded nails. Soft light. "
+            "Japanese salon style."
+        )
+
+        image_response = client.images.generate(
+            model="dall-e-3",
+            prompt=image_prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+
+        image_url = image_response.data[0].url
+
+        # ログ・保存
         with open('latest_plan.txt', 'w', encoding='utf-8') as f:
             f.write(plan)
 
-        return jsonify({'status': 'ネイルプランの生成が完了しました。', 'plan': plan})
+        return jsonify({
+            'status': 'ネイルプランの生成が完了しました。',
+            'plan': plan,
+            'image_url': image_url
+        })
 
     except Exception as e:
         return jsonify({'status': 'エラーが発生しました', 'error': str(e)}), 500

@@ -193,9 +193,17 @@
   <script>
     document.getElementById("nailForm").addEventListener("submit", async function(event) {
       event.preventDefault();
-      document.getElementById("loadingPopup").style.display = "flex"; // 表示
+
+      const popup = document.getElementById("loadingPopup");
+      if (popup.style.display === "flex") return;
+
+      popup.style.display = "flex";
 
       const form = event.target;
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "送信中...";
+
       const formData = new FormData(form);
       const data = {};
 
@@ -219,7 +227,9 @@
         });
 
         const result = await response.json();
-        document.getElementById("loadingPopup").style.display = "none"; // 非表示
+        popup.style.display = "none";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "送信する";
 
         if (response.ok) {
           document.getElementById("planText").textContent = result.plan || "(プランが取得できませんでした)";
@@ -235,7 +245,9 @@
         }
 
       } catch (error) {
-        document.getElementById("loadingPopup").style.display = "none"; // 非表示
+        popup.style.display = "none";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "送信する";
         console.error("送信エラー:", error);
         alert("サーバーとの通信に失敗しました。");
       }

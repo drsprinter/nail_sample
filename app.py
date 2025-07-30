@@ -13,7 +13,7 @@ CORS(app, origins=["https://drsprinter.github.io",
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route('/api/makeup', methods=['POST', 'OPTIONS'])
-def nail():
+def makeup():
     if request.method == 'OPTIONS':
         return '', 204
 

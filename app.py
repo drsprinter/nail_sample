@@ -34,7 +34,9 @@ def makeup():
             "以下のお客様情報をもとに、ネイルプランを生成してください。"
             "出力は次の2つのセクションに分けてください：\n"
             "[お客様向けネイルコンセプト]：感性に響く丁寧な説明、使用カラーやイメージなど。\n"
-            "[サロン向け技術メモ]：プリジェル顔料を使ったカラー調合比率、使用カラー名、塗布順、ポイントなど。特にカラー調合でお客さんに合わせる部分は大事なので今回のネイルプランに合った調合比率や、明るくしたいもしくは暗くしたい場合の調合方法やカラーや比率も合わせてあると良い。"
+            "[サロン向け技術メモ]：プリジェル顔料を使ったカラー調合比率、使用カラー名、塗布順、ポイントなど。"
+            "特にカラー調合でお客さんに合わせる部分は大事なので今回のネイルプランに合った調合比率や、"
+            "明るくしたいもしくは暗くしたい場合の調合方法やカラーや比率も合わせてあると良い。"
         )
 
         # GPTでネイルプラン生成
@@ -49,15 +51,17 @@ def makeup():
 
         plan = response.choices[0].message.content.strip()
 
-        # プランからDALL·E用プロンプトを自動生成（英語）
+        # DALL·E用プロンプト生成
         image_prompt_response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {
                     "role": "system",
-                    "content": "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。"
-                               "ネイルカラー後の状態をイメージしやすい画像として成立する内容にしてください。"
-                               "ネイルのイメージはシンプルで上品なものとし、モデルの肌の色は明るめのベージュ系でお願いします。"
+                    "content": (
+                        "以下のネイルプランをもとに、DALL·Eで画像生成するための英語のプロンプトを作成してください。"
+                        "ネイルカラー後の状態をイメージしやすい画像として成立する内容にしてください。"
+                        "ネイルのイメージはシンプルで上品なものとし、モデルの肌の色は明るめのベージュ系でお願いします。"
+                    )
                 },
                 {
                     "role": "user",
@@ -69,17 +73,17 @@ def makeup():
         image_prompt = image_prompt_response.choices[0].message.content.strip()
         print("🎨 image prompt:", image_prompt)
 
-        # DALL·E で画像生成
+        # DALL·Eで画像を3枚生成
         image_response = client.images.generate(
             model="dall-e-3",
             prompt=image_prompt,
             size="1024x1024",
             quality="standard",
-            n=1
+            n=3  # ← 3枚生成
         )
 
-        image_url = image_response.data[0].url
-        print("🖼️ image_url:", image_url)
+        image_urls = [img.url for img in image_response.data]
+        print("🖼️ image_urls:", image_urls)
 
         # ログ・保存
         with open('latest_plan.txt', 'w', encoding='utf-8') as f:
@@ -88,7 +92,7 @@ def makeup():
         return jsonify({
             'status': 'ネイルプランの生成が完了しました。',
             'plan': plan,
-            'image_url': image_url
+            'image_urls': image_urls  # ← 配列で返却
         })
 
     except Exception as e:

@@ -114,7 +114,6 @@
       width: 100%; height: 100%;
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 9999;
-      display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
@@ -129,7 +128,6 @@
 <body>
   <div class="container">
     <h1>ネイルカウンセリングフォーム</h1>
-
     <form id="nailForm">
       <h2>基本情報</h2>
       <label for="age">年齢層</label>
@@ -141,10 +139,8 @@
         <option value="40代">40代</option>
         <option value="50代以上">50代以上</option>
       </select>
-
       <label for="lifestyle">職業やライフスタイル</label>
       <input type="text" id="lifestyle" name="lifestyle" placeholder="例：オフィスワーク、接客業、在宅ワーク など"/>
-
       <label for="nail_duration">他サロンでのジェルネイルの持ちはどのくらいでしたか？（任意）</label>
       <select id="nail_duration" name="nail_duration">
         <option value="">選択してください</option>
@@ -155,7 +151,6 @@
         <option value="4週間以上">4週間以上</option>
         <option value="覚えていない">覚えていない</option>
       </select>
-
       <h2>ネイルの希望イメージ</h2>
       <label>今回のネイルの目的（複数選択可）</label>
       <div class="checkbox-group">
@@ -165,7 +160,6 @@
         <label><input type="checkbox" name="purpose" value="人と会う"> 人と会う予定がある</label>
         <label><input type="checkbox" name="purpose" value="なんとなく"> なんとなくキレイにしたい</label>
       </div>
-
       <label>希望するネイルの雰囲気（複数選択可）</label>
       <div class="checkbox-group">
         <label><input type="checkbox" name="vibe" value="上品"> 上品</label>
@@ -176,13 +170,10 @@
         <label><input type="checkbox" name="vibe" value="トレンド感"> トレンド感ある</label>
         <label><input type="checkbox" name="vibe" value="自分らしく"> 自分らしく</label>
       </div>
-
       <label for="avoid_colors">苦手・避けたいテイストやカラー（自由記述）</label>
       <textarea id="avoid_colors" name="avoid_colors" rows="3" placeholder="例：派手な赤、ラメ、黒系が苦手..."></textarea>
-
       <button type="submit">送信する</button>
     </form>
-
     <div class="result" id="result" style="display:none;">
       <h2>あなたのネイルプラン</h2>
       <pre id="planText"></pre>
@@ -190,14 +181,14 @@
       <div class="caption" id="imgCaption" style="display:none;">※AIによるネイルイメージ（3パターン）</div>
     </div>
   </div>
-
-  <!-- 処理中ポップアップ -->
   <div id="loadingPopup">処理中です… しばらくお待ちください 💅</div>
-
   <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById("loadingPopup").style.display = "none";
+    });
+
     document.getElementById("nailForm").addEventListener("submit", async function(event) {
       event.preventDefault();
-
       const popup = document.getElementById("loadingPopup");
       const form = event.target;
       const submitBtn = form.querySelector('button[type="submit"]');

@@ -103,13 +103,12 @@
       margin-top: 8px;
     }
     #loadingPopup {
-      display: none;
+      display: none; /* ← 修正：初期状態で非表示 */
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
       background-color: rgba(255, 255, 255, 0.9);
       z-index: 9999;
-      display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
@@ -152,7 +151,6 @@
       </select>
 
       <h2>ネイルの希望イメージ</h2>
-
       <label>今回のネイルの目的（複数選択可）</label>
       <div class="checkbox-group">
         <label><input type="checkbox" name="purpose" value="仕事用"> 仕事に合わせて</label>
@@ -198,7 +196,7 @@
       const form = event.target;
       const submitBtn = form.querySelector('button[type="submit"]');
       const resultDiv = document.getElementById("result");
-      const imageEl = document.getElementById("nailImage");
+      const image = document.getElementById("nailImage");
       const caption = document.getElementById("imgCaption");
 
       popup.style.display = "flex";
@@ -235,8 +233,8 @@
         if (response.ok) {
           document.getElementById("planText").textContent = result.plan || "(プランが取得できませんでした)";
           if (result.image_url) {
-            imageEl.src = result.image_url;
-            imageEl.style.display = "block";
+            image.src = result.image_url;
+            image.style.display = "block";
             caption.style.display = "block";
           }
           resultDiv.style.display = "block";
@@ -244,7 +242,6 @@
         } else {
           alert("エラーが発生しました: " + (result.error || "不明なエラー"));
         }
-
       } catch (error) {
         popup.style.display = "none";
         submitBtn.disabled = false;
